@@ -12,7 +12,7 @@ TELEGRAM_TOKEN = "8626710924:AAEoGe-JoTIkYGKB24zlXrDhUV5QJ5D_Hbs"
 ANTHROPIC_API_KEY = "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"
 
 print(f"TOKEN starts with: {str(TELEGRAM_TOKEN)[:10] if TELEGRAM_TOKEN else 'EMPTY'}")
-
+client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 def agent_analyst(transcript: str) -> str:
     response = client.messages.create(
