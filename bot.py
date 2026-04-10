@@ -6,10 +6,12 @@ from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, fil
 
 load_dotenv()
 
+load_dotenv()
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+print(f"TOKEN starts with: {str(TELEGRAM_TOKEN)[:10] if TELEGRAM_TOKEN else 'EMPTY'}")
 
 
 def agent_analyst(transcript: str) -> str:
