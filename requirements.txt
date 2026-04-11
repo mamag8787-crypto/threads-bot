@@ -1,5 +1,5 @@
 anthropic
 python-telegram-bot
 python-dotenv
-httpx[socks]
 python-docx
+httpx
