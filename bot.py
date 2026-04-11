@@ -8,7 +8,8 @@ load_dotenv()
 
 load_dotenv()
 
-TELEGRAM_TOKEN = "8626710924:AAEoGe-JoTIkYGKB24zlXrDhUV5QJ5D_Hbs"
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 
 print(f"TOKEN starts with: {str(TELEGRAM_TOKEN)[:10] if TELEGRAM_TOKEN else 'EMPTY'}")
