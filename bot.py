@@ -19,7 +19,7 @@ pending_posts = {}
 def get_threads_user_id() -> str:
     url = "https://graph.threads.net/v1.0/me"
     params = {"fields": "id,username", "access_token": THREADS_TOKEN}
-    response = httpx.get(url, params=params)
+    response = httpx.get(url, params=params, timeout=30.0)
     return response.json().get("id")
 
 
@@ -32,7 +32,7 @@ def create_container(user_id: str, text: str, reply_to_id: str = None) -> str:
     }
     if reply_to_id:
         params["reply_to_id"] = reply_to_id
-    response = httpx.post(url, params=params)
+    response = httpx.post(url, params=params, timeout=30.0)
     return response.json().get("id")
 
 
@@ -42,7 +42,7 @@ def publish_container(user_id: str, creation_id: str) -> str:
         "creation_id": creation_id,
         "access_token": THREADS_TOKEN
     }
-    response = httpx.post(url, params=params)
+    response = httpx.post(url, params=params, timeout=30.0)
     return response.json().get("id")
 
 
