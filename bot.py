@@ -9,7 +9,7 @@ load_dotenv()
 load_dotenv()
 
 TELEGRAM_TOKEN = "8626710924:AAEoGe-JoTIkYGKB24zlXrDhUV5QJ5D_Hbs"
-ANTHROPIC_API_KEY = "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"
+ANTHROPIC_API_KEY = "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"
 
 print(f"TOKEN starts with: {str(TELEGRAM_TOKEN)[:10] if TELEGRAM_TOKEN else 'EMPTY'}")
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
