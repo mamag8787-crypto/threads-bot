@@ -113,11 +113,9 @@ def agent_reviewer(posts: str) -> str:
     return response.content[0].text
 
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    transcript = update.message.text
-
+async def process_transcript(update: Update, transcript: str):
     if len(transcript) < 100:
-        await update.message.reply_text("Пришли транскрипт вебинара. Минимум 100 символов.")
+        await update.message.reply_text("Транскрипт слишком короткий. Минимум 100 символов.")
         return
 
     await update.message.reply_text("Агент 1: анализирую транскрипт...")
@@ -133,7 +131,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Агент 4: финальная проверка...")
 
         final_posts = agent_reviewer(raw_posts)
-        await update.message.reply_text("Готово! Вот твоя ветка для Threads:")
+        await update.message.reply_text("Готово! Вот твоя ветка:")
 
         parts = final_posts.split("━━━ ПОСТ ")
         for part in parts:
@@ -142,32 +140,74 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 continue
             lines = part.split("━━━", 1)
             if len(lines) == 2:
-                number = lines[0].strip()
                 text = lines[1].strip()
-                await update.message.reply_text("📌 ПОСТ " + number + "\n\n" + text)
+                await update.message.reply_text(text)
             else:
                 await update.message.reply_text(part)
 
-        await update.message.reply_text("Копируй и публикуй в Threads!")
+        await update.message.reply_text("Все посты готовы. Копируй и публикуй в Threads!")
 
     except Exception as e:
         await update.message.reply_text("Ошибка: " + str(e))
+
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await process_transcript(update, update.message.text)
+
+
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    doc = update.message.document
+    mime = doc.mime_type or ""
+    name = doc.file_name or ""
+
+    # Поддерживаем txt и docx
+    if not (mime == "text/plain" or name.endswith(".txt") or name.endswith(".docx")):
+        await update.message.reply_text(
+            "Поддерживаю файлы .txt и .docx\nИли просто вставь текст сообщением."
+        )
+        return
+
+    await update.message.reply_text("Читаю файл...")
+
+    file = await context.bot.get_file(doc.file_id)
+    file_bytes = await file.download_as_bytearray()
+
+    if name.endswith(".docx"):
+        try:
+            import docx
+            import io
+            document = docx.Document(io.BytesIO(bytes(file_bytes)))
+            transcript = "\n".join([para.text for para in document.paragraphs if para.text.strip()])
+        except Exception as e:
+            await update.message.reply_text("Ошибка чтения .docx: " + str(e))
+            return
+    else:
+        try:
+            transcript = file_bytes.decode("utf-8")
+        except Exception:
+            try:
+                transcript = file_bytes.decode("cp1251")
+            except Exception as e:
+                await update.message.reply_text("Ошибка чтения файла: " + str(e))
+                return
+
+    await process_transcript(update, transcript)
 
 
 async def handle_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Привет! Я создаю ветки для Threads из твоих транскриптов.\n\n"
         "Как использовать:\n"
-        "1. Скопируй транскрипт вебинара\n"
-        "2. Вставь сюда и отправь\n"
-        "3. Получи готовую ветку из 10 постов — каждый отдельным сообщением\n\n"
-        "Обработка занимает около 60 секунд."
+        "1. Пришли транскрипт — текстом или файлом (.txt / .docx)\n"
+        "2. Подожди ~60 секунд\n"
+        "3. Получи 10 постов — каждый отдельным сообщением"
     )
 
 
 def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", handle_start))
+    app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Бот запущен!")
     app.run_polling()
